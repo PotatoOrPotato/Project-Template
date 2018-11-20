@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!-- 配置MyJob类 -->
+    <bean id="myJob" class="unmanned.supermarket.pay.quartz.MyQuartz"></bean><!--（注：这个路径就是你的定时类的路径）-->
+
+
+
+    <!-- 配置JobDetail，目的：让job执行的 -->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 注入目标对象 -->
+        <property name="targetObject" ref="myJob"/><!--（注：这个是上面的ID，引入你的定时类）-->
+        <!-- 注入目标方法 -->
+        <property name="targetMethod" value="job1"/><!--（注：这个就是你定时类里面的方法名）-->
+    </bean>
+
+
+    <!-- 配置Trigger，配置时间表达式 -->
+    <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="jobDetail"/>
+        <!-- 时间表达式  秒 分 时 日 月 星期 年
+                表达式的格式：秒  分  时  日  月  星期  年
+                日和星期可以用?来表示(不能同时用)
+                年是可以省略不写，省略不写表示每一年都执行
+                0/10      每过10秒发一次
+                2,5,9   表示在2,5,9时都会触发定时器trigger
+                2-8    表示在2到8之间都会触发
+        -->
+        <property name="cronExpression" value="0 0 3 * * ? *"/>
+    </bean>
+
+
+
+    <!-- 配置时间表达式,间隔时间执行 -->
+    <bean id="simpleTrigger"
+          class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail" ref="jobDetail" />
+        <!-- 服务启动多久后，启动时间，单位ms  -->
+        <property name="startDelay" value="0" />
+        <!-- 重复间隔时间，单位ms  -->
+        <property name="repeatInterval" value="5000" />
+    </bean>
+
+
+
+    <!-- 以上的可以配置多个 -->
+    <!-- 配置的是和谐的调度容器 -->
+    <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="cronTrigger"/>
+                <ref bean="simpleTrigger"/>
+                <!-- 直接在这引入多个就可以了 -->
+            </list>
+        </property>
+    </bean>
+</beans>

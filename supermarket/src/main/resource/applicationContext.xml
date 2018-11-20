@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+          http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<description>Spring公共配置</description>
+
+
+	<!-- 使用annotation 自动注册bean,并保证@Required,@Autowired的属性被注入 -->
+	<!-- Activates scanning of @Autowired -->
+	<context:annotation-config />
+	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
+	<context:component-scan base-package="unmanned.supermarket.pay.*">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+
+	<!--<mvc:annotation-driven content-negotiation-manager="contentNegotiationManager">-->
+	<!-- 配置系统当前最新版本  注解形式的处理器映射器和处理器适配器     配置注解驱动 -->
+	<mvc:annotation-driven>
+		<mvc:async-support default-timeout="5000" />
+	</mvc:annotation-driven>
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 配置前缀 -->
+		<property name="prefix" value="/WEB-INF/jsp/"/>
+		<!-- 配置后缀 -->
+		<property name="suffix" value=".jsp"/>
+	</bean>
+
+	<!-- For mail settings and future properties files -->
+	<context:property-placeholder location="classpath:*.properties" />
+
+	<!-- 使用annotation定义事务 -->
+    <!--<tx:annotation-driven transaction-manager="lifeservicedbTM" />-->
+
+
+	<!-- redis的pom.xml中的配置 -->
+	<bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxIdle" value="${redis.maxIdle}" />
+		<property name="maxTotal" value="${redis.maxTotal}" />
+		<property name="maxWaitMillis" value="${redis.maxWaitMillis}" />
+		<property name="testOnBorrow" value="${redis.testOnBorrow}" />
+	</bean>
+	<bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="hostName" value="${redis.host}" />
+		<property name="port" value="${redis.port}" />
+		<property name="password" value="${redis.pass}" />
+		<property name="poolConfig" ref="poolConfig" />
+	</bean>
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="keySerializer">
+			<bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+		</property>
+		<property name="valueSerializer">
+			<bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+		</property>
+		<property name="hashKeySerializer">
+			<bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+		</property>
+		<property name="hashValueSerializer">
+			<bean class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+		</property>
+	</bean>
+	
+	<!-- <import resource="applicationContext-activemq.xml"/> -->
+	<import resource="applicationContext-dao.xml"/>
+	<!-- <import resource="applicationContext-quartz.xml"/> -->
+	<!--<import resource="applicationContext-redis.xml"/>-->
+	<!--<import resource="applicationContext-thread.xml"/>-->
+</beans>
